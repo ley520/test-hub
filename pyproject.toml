@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "test-hub"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+license = "Apache License 2.0"
+readme = "README.md"
+packages = [{include = "test_hub"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+django-ninja = "^0.22.2"
+django = "4.2.4"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
