@@ -58,6 +58,20 @@ doc = ["markdown-include", "mkdocs", "mkdocs-material", "mkdocstrings"]
 test = ["black", "django-stubs", "flake8", "isort", "mypy (==0.931)", "psycopg2-binary", "pytest", "pytest-asyncio", "pytest-cov", "pytest-django"]
 
 [[package]]
+name = "django-treebeard"
+version = "4.7"
+description = "Efficient tree implementations for Django"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "django-treebeard-4.7.tar.gz", hash = "sha256:c751a3f924158c288fea89afc25a7151979faf01bf11fdc7be3b858099dfa56d"},
+    {file = "django_treebeard-4.7-py3-none-any.whl", hash = "sha256:787117995ff985d98e6c2b241ef6b9d37fe8ff7051cd7535c283616a0b5b2645"},
+]
+
+[package.dependencies]
+Django = ">=3.2"
+
+[[package]]
 name = "pydantic"
 version = "1.10.12"
 description = "Data validation and settings management using python type hints"
@@ -150,4 +164,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "2ae03196ec8851d3c8c39313898abfe5534a4489fd1eecce69d93215e303cb73"
+content-hash = "4421e69836879bb2d3809f73f412ff29912f4ecb6297a001f1e0eddafe3dff91"

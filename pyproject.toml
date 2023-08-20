@@ -11,6 +11,7 @@ packages = [{include = "test_hub"}]
 python = "^3.10"
 django-ninja = "^0.22.2"
 django = "4.2.4"
+django-treebeard = "^4.7"
 
 
 [build-system]
