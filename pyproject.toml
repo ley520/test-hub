@@ -12,6 +12,7 @@ python = "^3.10"
 django-ninja = "^0.22.2"
 django = "4.2.4"
 django-treebeard = "^4.7"
+pyjwt = "^2.8.0"
 
 
 [build-system]

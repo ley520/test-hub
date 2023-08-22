@@ -11,43 +11,60 @@ class BaseModel(models.Model):
         abstract = True
 
 
-class ProjectModel(BaseModel):
+class TestcaseTypeEnum(models.IntegerChoices):
+    FUNCTION_TEST = 1, "功能测试"
+    AUTO_TEST = 2, "自动化测试"
+
+
+class Testcase(BaseModel):
     '''
-    项目表
+    测试用例定义
+    todo：属性不是最终属性，还需要补充
     '''
-    name = models.CharField(verbose_name="项目名称", max_length=256, null=False, blank=False)
-    desc = models.TextField(verbose_name="项目描述和内容")
-    is_del = models.BooleanField(default=False, null=False, blank=False)
+    title = models.CharField(verbose_name="用例标题", max_length=256)
+    desc = models.TextField(verbose_name="用例描述")
+    pre_step = models.TextField(verbose_name="前置条件")
+    step = models.TextField(verbose_name="用例步骤")
+    type = models.PositiveIntegerField(verbose_name="Case类型", choices=TestcaseTypeEnum.choices,
+                                       default=TestcaseTypeEnum.FUNCTION_TEST)
+    version = models.PositiveIntegerField(verbose_name="用例版本", default=1)
+    creator = models.PositiveIntegerField(verbose_name="创建者")
+    updater = models.PositiveIntegerField(verbose_name="更新者")
+    tree_node_id = models.PositiveIntegerField(verbose_name="所属节点ID")
 
     class Meta:
-        db_table = "project"
+        db_table = "testcase"
 
 
-class RequirementModel(BaseModel):
+class TestcaseSnapshot(Testcase):
     '''
-    需求表
+    测试用例快照
     '''
-    name = models.CharField(verbose_name="需求名称", max_length=256)
-    desc = models.TextField(verbose_name="需求描述和内容")
-    project_id = models.PositiveIntegerField(db_index=True, null=False, blank=False)
-    is_del = models.BooleanField(default=False, null=False, blank=False)
+    testcase_id = models.PositiveIntegerField(verbose_name="用例id", blank=False, null=False)
 
     class Meta:
-        db_table = "requirement"
+        db_table = "testcase_snapshot"
 
 
-class TestcaseTreeNode(MP_Node):
+class TestPlan(BaseModel):
     '''
-    Case目录表，每个项目只可以创建1个总目录，但是子目录不做任何限制
+    测试计划，关联测试用例和需求
+    可以单独存在也可以和需求绑定。
     '''
-    name = models.CharField(max_length=32)
-    project_id = models.PositiveIntegerField(db_index=True, null=False, blank=False)
-    create_time = models.DateTimeField(verbose_name="创建时间", auto_now_add=True)
-    update_time = models.DateTimeField(verbose_name="更新时间", auto_now=True)
-    node_order_by = ['name']
+    name = models.CharField(verbose_name="测试计划名称", max_length=32)
+    user = models.PositiveIntegerField('')
 
-    def __str__(self):
-        return self.name
 
-    class Meta:
-        db_table = "testcase_tree"
+class TestcaseRunStatusEnum(models.IntegerChoices):
+    INIT = 1, "待执行"
+    SUCCESS = 2, "通过"
+    FAIL = 3, "失败"
+    BLOCK = 4, "阻塞"
+
+
+class PlanCaseMapping(BaseModel):
+    test_plan_id = models.PositiveIntegerField()
+    testcase_id = models.PositiveIntegerField()
+    testcase_status = models.PositiveIntegerField(verbose_name="用例执行状态", choices=TestcaseRunStatusEnum.choices,
+                                                  default=TestcaseRunStatusEnum.INIT)
+    executor = models.PositiveIntegerField(verbose_name="执行人")

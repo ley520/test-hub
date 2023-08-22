@@ -62,6 +62,7 @@ db.sqlite3
 db.sqlite3-journal
 testhub/api/migrations
 testhub/testcase/migrations
+testhub/common/migrations
 
 # Flask stuff:
 instance/

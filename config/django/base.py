@@ -30,11 +30,13 @@ ALLOWED_HOSTS = []
 
 LOCAL_APPS = [
     "testhub.api.apps.ApiConfig",
-    "testhub.testcase.apps.TestcaseConfig"
+    "testhub.testcase.apps.TestcaseConfig",
+    "testhub.common.apps.CommonConfig",
+    "testhub.user.apps.UserConfig",
 ]
 
 THIRD_PARTY_APPS = [
-
+    "ninja",
 ]
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -120,3 +122,4 @@ STATIC_URL = "/static/"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+

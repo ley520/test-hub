@@ -17,9 +17,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 # from testhub import api
+from testhub.user.views import router
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("api/", router.urls)
     # path("api/", api.urls),
 
 ]
