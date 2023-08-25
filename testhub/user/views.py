@@ -1,5 +1,5 @@
 from django.http import HttpRequest
-from django.shortcuts import render
+from django.core.handlers.wsgi import WSGIRequest
 
 # Create your views here.
 from ninja.security import HttpBasicAuth
@@ -16,5 +16,10 @@ class MyHttpBasicAuth(HttpBasicAuth):
 
 
 @router.get("/test")
-def test_login(request):
+def test_login(request: WSGIRequest):
+    print(request)
+    print(type(request))
+    print(request.headers)
+    print(request.user)
+    print(request.META)
     return "success"
