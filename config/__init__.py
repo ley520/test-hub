@@ -1,6 +1,7 @@
 # coding=utf-8
 # data：2023/8/16-21:06
+from .logger import logger
 
-
-if __name__ == "__main__":
-    pass
+__all__ = [
+    'logger',
+]

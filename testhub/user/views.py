@@ -5,7 +5,9 @@ from django.core.handlers.wsgi import WSGIRequest
 from ninja.security import HttpBasicAuth
 from ninja import NinjaAPI
 
-import jwt
+from ninja import Schema
+
+from .utils import create_token, parse_payload, htt_auth_with_token
 
 router = NinjaAPI()
 
@@ -15,7 +17,7 @@ class MyHttpBasicAuth(HttpBasicAuth):
         pass
 
 
-@router.get("/test")
+@router.get("/test", auth=htt_auth_with_token)
 def test_login(request: WSGIRequest):
     print(request)
     print(type(request))
@@ -23,3 +25,18 @@ def test_login(request: WSGIRequest):
     print(request.user)
     print(request.META)
     return "success"
+
+
+class LoginSchema(Schema):
+    username: str
+    password: str
+
+
+@router.post("/login")
+def login(request, user_info: LoginSchema):
+    return create_token(user_info.dict())
+
+
+@router.post("/check")
+def login(request, token: str):
+    return parse_payload(token)
