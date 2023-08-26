@@ -5,6 +5,8 @@ import datetime
 
 from django.http import HttpRequest
 from jwt import exceptions
+from ninja.security import HttpBearer
+
 from config.settings.jwt import JWT_SECRET, JWT_EXPIRATION_DELTA_SECONDS, JWT_AUTH_HEADER, JWT_AUTH_HEADER_PREFIX
 from django.conf import settings
 
@@ -46,17 +48,13 @@ def parse_payload(token):
     return result
 
 
-def htt_auth_with_token(request: HttpRequest):
-    auth_value = request.headers.get(JWT_AUTH_HEADER)
-    if not auth_value:
-        return None
-    parts = auth_value.split(" ")
-    if parts[0].lower() != JWT_AUTH_HEADER_PREFIX:
-        if settings.DEBUG:
-            logger.error(f"Unexpected auth - '{auth_value}'")
-        return None
-    result = parse_payload(parts[1:])
-    if result['status']:
-        request.user = result['data']
-        return True
-    return False
+class MyHttpBearer(HttpBearer):
+    openapi_scheme: str = JWT_AUTH_HEADER_PREFIX
+    header: str = JWT_AUTH_HEADER
+
+    def authenticate(self, request, token):
+        result = parse_payload(token)
+        if result['status']:
+            request.user = result['data']
+            return request.user
+        return False
