@@ -13,9 +13,9 @@ class BaseModel(models.Model):
 
 
 class ProjectModel(BaseModel):
-    '''
+    """
     项目表
-    '''
+    """
     name = models.CharField(verbose_name="项目名称", max_length=256, null=False, blank=False)
     desc = models.TextField(verbose_name="项目描述和内容")
     is_del = models.BooleanField(default=False, null=False, blank=False)
@@ -28,9 +28,9 @@ class ProjectModel(BaseModel):
 
 
 class RequirementModel(BaseModel):
-    '''
+    """
     需求表
-    '''
+    """
     name = models.CharField(verbose_name="需求名称", max_length=256)
     desc = models.TextField(verbose_name="需求描述和内容")
     create_user_id = models.PositiveIntegerField(verbose_name="创建人id")
@@ -43,9 +43,9 @@ class RequirementModel(BaseModel):
 
 
 class TreeNode(MP_Node):
-    '''
+    """
     目录表
-    '''
+    """
     name = models.CharField(max_length=32)
     project_id = models.PositiveIntegerField(null=True)
     create_time = models.DateTimeField(verbose_name="创建时间", auto_now_add=True)
