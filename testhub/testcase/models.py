@@ -17,10 +17,10 @@ class TestcaseTypeEnum(models.IntegerChoices):
 
 
 class Testcase(BaseModel):
-    '''
+    """
     测试用例定义
     todo：属性不是最终属性，还需要补充
-    '''
+    """
     title = models.CharField(verbose_name="用例标题", max_length=256)
     desc = models.TextField(verbose_name="用例描述")
     pre_step = models.TextField(verbose_name="前置条件")
@@ -37,9 +37,9 @@ class Testcase(BaseModel):
 
 
 class TestcaseSnapshot(Testcase):
-    '''
+    """
     测试用例快照
-    '''
+    """
     testcase_id = models.PositiveIntegerField(verbose_name="用例id", blank=False, null=False)
 
     class Meta:
@@ -47,10 +47,10 @@ class TestcaseSnapshot(Testcase):
 
 
 class TestPlan(BaseModel):
-    '''
+    """
     测试计划，关联测试用例和需求
     可以单独存在也可以和需求绑定。
-    '''
+    """
     name = models.CharField(verbose_name="测试计划名称", max_length=32)
     user = models.PositiveIntegerField('')
 
