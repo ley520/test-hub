@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, time
 from django.conf import settings
 
 import sys
+import os
 
 # 去除默认控制台输出
 log.remove()
@@ -58,20 +59,21 @@ config_map = {
     "serialize": False,
     "compression": "zip",
 }
+log_file_path = os.path.join(settings.BASE_DIR, "log")
 
-log.add(str(settings.BASE_DIR) + "/log/info.{time:YYYY-MM-DD}.log",
+log.add(os.path.join(log_file_path, "info.{time:YYYY-MM-DD}.log"),
         # format="{time:YYYY-MM-DD HH:mm:ss.SSS}-{level}-{message}",
         level="INFO",
         filter=only_level("INFO"),
         **config_map)
 
-log.add(str(settings.BASE_DIR) + "/log/error.{time:YYYY-MM-DD}.log",
+log.add(os.path.join(log_file_path, "error.{time:YYYY-MM-DD}.log"),
         level="ERROR",
         filter=only_level("ERROR"),
         backtrace=True,
         diagnose=True,
         **config_map)
-log.add(str(settings.BASE_DIR) + "/log/debug.{time:YYYY-MM-DD}.log",
+log.add(os.path.join(log_file_path, "debug.{time:YYYY-MM-DD}.log"),
         level="DEBUG",
         filter=only_level("DEBUG"),
         backtrace=True,
