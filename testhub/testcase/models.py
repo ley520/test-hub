@@ -28,12 +28,15 @@ class Testcase(BaseModel):
     type = models.PositiveIntegerField(verbose_name="Case类型", choices=TestcaseTypeEnum.choices,
                                        default=TestcaseTypeEnum.FUNCTION_TEST)
     version = models.PositiveIntegerField(verbose_name="用例版本", default=1)
-    creator = models.PositiveIntegerField(verbose_name="创建者")
-    updater = models.PositiveIntegerField(verbose_name="更。、新者")
-    tree_node_id = models.PositiveIntegerField(verbose_name="所属节点ID")
+    create_user_id = models.PositiveIntegerField(verbose_name="创建者", default=0)
+    update_user_id = models.PositiveIntegerField(verbose_name="更新者", default=0)
+    tree_node_id = models.PositiveIntegerField(verbose_name="所属节点ID", default=0)
 
     class Meta:
         db_table = "testcase"
+        indexes = [
+            models.Index(fields=["tree_node_id"], name="tree_node_idx")
+        ]
 
 
 class TestcaseSnapshot(Testcase):
@@ -52,7 +55,8 @@ class TestPlan(BaseModel):
     可以单独存在也可以和需求绑定。
     """
     name = models.CharField(verbose_name="测试计划名称", max_length=32)
-    user = models.PositiveIntegerField('')
+    create_user_id = models.PositiveIntegerField(verbose_name="创建者", default=0)
+    update_user_id = models.PositiveIntegerField(verbose_name="更新者", default=0)
 
 
 class TestcaseRunStatusEnum(models.IntegerChoices):

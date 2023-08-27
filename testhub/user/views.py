@@ -4,13 +4,15 @@ from django.core.handlers.wsgi import WSGIRequest
 # Create your views here.
 from ninja.security import HttpBasicAuth
 from ninja import NinjaAPI
+from ninja import Router
 
 from ninja import Schema
 
 from .utils import create_token, parse_payload, MyHttpBearer
 from config import logger
 
-router = NinjaAPI(auth=MyHttpBearer())
+# router = NinjaAPI(auth=MyHttpBearer())
+router = Router()
 
 
 class MyHttpBasicAuth(HttpBasicAuth):
@@ -42,5 +44,5 @@ def login(request, user_info: LoginSchema):
 
 
 @router.post("/check")
-def login(request, token: str):
+def check(request, token: str):
     return parse_payload(token)
