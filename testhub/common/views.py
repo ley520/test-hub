@@ -9,7 +9,6 @@ from testhub.common import services
 router = Router()
 
 
-
 @router.get("/tree/{node_id}", description="获取某个节点下所有的节点")
 def get_testcase_tree_node(request, node_id: int):
     node = get_all_node(node_id)
