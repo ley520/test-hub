@@ -29,7 +29,7 @@ class Testcase(BaseModel):
                                        default=TestcaseTypeEnum.FUNCTION_TEST)
     version = models.PositiveIntegerField(verbose_name="用例版本", default=1)
     creator = models.PositiveIntegerField(verbose_name="创建者")
-    updater = models.PositiveIntegerField(verbose_name="更新者")
+    updater = models.PositiveIntegerField(verbose_name="更。、新者")
     tree_node_id = models.PositiveIntegerField(verbose_name="所属节点ID")
 
     class Meta:

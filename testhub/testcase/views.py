@@ -1,13 +1,9 @@
-from ninja import NinjaAPI, Schema
+from ninja import NinjaAPI
 
 from testhub.common.models import ProjectModel
+from testhub.testcase.schemas import ProjectSchemaIn
 
 router = NinjaAPI(title="测试用例管理", urls_namespace='testcases')
-
-
-class ProjectSchema(Schema):
-    name: str
-    desc: str = None
 
 
 @router.get("/tree/{node_id}", description="获取某个节点下所有的节点")
@@ -21,7 +17,7 @@ def add_tree_node(request, node_id: int):
 
 
 @router.post("/project", description="新增项目")
-def add_project(request, project_info: ProjectSchema):
+def add_project(request, project_info: ProjectSchemaIn):
     project_info = project_info.dict()
     project_instance = ProjectModel.objects.create(**project_info)
     return {
@@ -50,7 +46,7 @@ def add_project(request, project_id: int):
 
 
 @router.put("/project/{project_id}", description="更新项目")
-def update_project(request, project_id: int, project_info: ProjectSchema):
+def update_project(request, project_id: int, project_info: ProjectSchemaIn):
     project_info = project_info.dict()
     try:
         project_instance = ProjectModel.objects.get(id=project_id)
