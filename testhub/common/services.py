@@ -1,10 +1,9 @@
 # coding=utf-8
 # data：2023/8/27-12:49
-from django.db.models import QuerySet
-
+from typing import List, Optional
 from .models import TreeNode, ProjectModel
 from config import logger
-from .schemas import ProjectCreateSchema
+from .schemas import ProjectCreateSchema, ProjectFilterSchema
 
 
 # 查询
@@ -30,6 +29,44 @@ def create_child_tree_node(parent_node_id, name):
 
 def create_new_project(project_info: ProjectCreateSchema) -> ProjectModel:
     root_node = create_root_tree_node(project_info.name)
-    project = project_info.dict().update({"testcase_root_tree_id": root_node.id})
-    project_instance = ProjectModel.objects.create(project)
+    project = project_info.dict()
+    project.update({"testcase_root_tree_id": root_node.id})
+    project_instance = ProjectModel.objects.create(**project)
     return project_instance
+
+
+def get_all_project(filters: ProjectFilterSchema) -> List[ProjectModel]:
+    projects = ProjectModel.objects.filter(is_del=False)
+    projects = filters.filter(projects)
+    return projects
+
+
+def get_project_detail(project_id: int) -> Optional[ProjectModel]:
+    project = ProjectModel.objects.filter(id=project_id, is_del=False)
+    if not project:
+        return None
+    return project[0]
+
+
+def delete_project(project_id: int) -> bool:
+    project = ProjectModel.objects.filter(id=project_id, is_del=False)
+
+    if not project:
+        logger.info(f"项目ID：{project_id} 不存在")
+        return False
+
+    project[0].is_del = True
+    project.save()
+    return True
+
+
+def update_project_info(project_id: int, project_info: ProjectCreateSchema) -> Optional[ProjectModel]:
+    project = ProjectModel.objects.filter(id=project_id, is_del=False)
+    if not project:
+        logger.info(f"项目ID：{project_id} 不存在")
+        return None
+
+    for key, value in project_info.dict().items():
+        setattr(project, key, value)
+    project.save()
+    return project

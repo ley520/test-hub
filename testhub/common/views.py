@@ -1,9 +1,14 @@
-from ninja import Router
+from typing import List
 
-from testhub.common.models import ProjectModel
-from testhub.common.schemas import ProjectCreateSchema, ProjectSchemaOut
-from .services import get_all_node
-from testhub.common import services
+from ninja import Router, Query
+from ninja.pagination import paginate
+
+from testhub.common.schemas import ProjectCreateSchema, ProjectSchemaOut, ProjectFilterSchema
+from .services import get_all_node, create_new_project, get_all_project, delete_project, update_project_info, get_project_detail
+
+from ..utils.BasePagination import CustomPagination
+from ..utils.BaseResponse import BaseRespSchema
+from ..utils.BaseStatusCode import CommonStatusCode
 
 # Create your views here.
 router = Router()
@@ -20,72 +25,38 @@ def add_tree_node(request, node_id: int):
     return {}
 
 
-@router.post("/project", description="新增项目")
+@router.post("/project", description="添加项目", response=BaseRespSchema[ProjectSchemaOut])
 def add_project(request, project_info: ProjectCreateSchema):
-    project_instance = services.create_new_project(project_info)
-    ProjectSchemaOut.build_success_resp(200, "成功", project_instance)
-    return ProjectSchemaOut.build_success_resp(200, "成功", project_instance)
+    project = create_new_project(project_info)
+    return BaseRespSchema.build_success_resp(data=project)
 
 
-@router.delete("/project/{project_id}", description="删除项目")
+@router.delete("/project/{project_id}", description="删除项目", response=BaseRespSchema)
 def del_project(request, project_id: int):
-    try:
-        project = ProjectModel.objects.get(id=project_id, is_del=False)
-        project.is_del = True
-        project.save()
-        return {
-            "msg": "项目删除成功"
-        }
-    except ProjectModel.DoesNotExist:
-        return {
-            "msg": "项目不存在"
-        }
+    is_deleted = delete_project(project_id=project_id)
+    if is_deleted:
+        return BaseRespSchema.build_success_resp(data=None)
+    else:
+        return BaseRespSchema.build_fall_resp(code=CommonStatusCode.PROJECT_NOT_EXIST.code, data=None, message=CommonStatusCode.PROJECT_NOT_EXIST.msg)
 
 
-@router.put("/project/{project_id}", description="更新项目")
+@router.put("/project/{project_id}", description="更新项目", response=BaseRespSchema[ProjectSchemaOut])
 def update_project(request, project_id: int, project_info: ProjectCreateSchema):
-    project_info = project_info.dict()
-    try:
-        project_instance = ProjectModel.objects.get(id=project_id)
-        for key, value in project_info.items():
-            setattr(project_instance, key, value)
-        project_instance.save()
-        return {
-            "msg": "成功",
-            "data": {
-                "project_id": project_instance.id,
-                "project_name": project_instance.name,
-                "project_desc": project_instance.desc
-            }
-        }
-    except ProjectModel.DoesNotExist:
-        return {
-            "msg": "项目不存在"
-        }
+    project = update_project_info(project_id=project_id, project_info=project_info)
+    if not project:
+        return BaseRespSchema.build_fall_resp(code=CommonStatusCode.PROJECT_NOT_EXIST.code, data=None, message=CommonStatusCode.PROJECT_NOT_EXIST.msg)
+    else:
+        return BaseRespSchema.build_success_resp(data=project)
 
 
-@router.get("/project", description="查询项目列表")
-def query_project_list(request):
-    project_list = ProjectModel.objects.filter(is_del=False)
-    project_query_list = [{"project_id": project.id, "project_name": project.name, "project_desc": project.desc} for
-                          project in project_list]
-    return {
-        "msg": "成功",
-        "data": project_query_list
-    }
+@router.get("/project", description="查询项目列表", response=List[ProjectSchemaOut])
+@paginate(CustomPagination)
+def query_project_list(request, filters: ProjectFilterSchema = Query(...)):
+    projects = get_all_project(filters=filters)
+    return projects
 
 
-@router.get("/project/{project_id}", description="查询项目列表")
-def query_project(request, project_id: int):
-    try:
-        project = ProjectModel.objects.get(is_del=False, id=project_id)
-        return {
-            "msg": "成功",
-            "data": {
-                "project_id": project.id,
-                "project_name": project.name,
-                "project_desc": project.desc,
-            }
-        }
-    except ProjectModel.DoesNotExist:
-        return {"msg": "成功", "data": None}
+@router.get("/project/{project_id}", description="查询项目详情", response=BaseRespSchema[ProjectSchemaOut])
+def query_project_detail(request, project_id: int):
+    project = get_project_detail(project_id=project_id)
+    return BaseRespSchema.build_success_resp(data=project)

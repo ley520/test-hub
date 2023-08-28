@@ -1,21 +1,23 @@
 # coding=utf-8
 # data：2023/8/27-13:33
 from ninja import Schema, ModelSchema
-from ninja.orm.metaclass import ModelSchemaMetaclass
 from pydantic import BaseModel
 
-from typing import Optional, Union, List
+from typing import Optional, TypeVar, Generic, Union, List
+from pydantic import generics
+
+T = TypeVar('T')
 
 
-class BaseRespSchema(Schema):
+class BaseRespSchema(generics.GenericModel, Generic[T]):
     code: int
-    message: Optional[str]
-    data: Union[BaseModel, Schema, ModelSchema, dict, List, None]
+    message: str
+    data: Optional[T]
 
-    @staticmethod
-    def build_success_resp(code, message, data):
-        return BaseRespSchema(code=code, message=message, data=data)
+    @classmethod
+    def build_success_resp(cls, data=None):
+        return cls(code=200, message='success', data=data)
 
-    @staticmethod
-    def build_fall_resp(code, message, data):
-        return BaseRespSchema(code=code, message=message, data=data)
+    @classmethod
+    def build_fall_resp(cls, code, message, data):
+        return cls(code=code, message=message, data=data)
