@@ -18,6 +18,7 @@ class ProjectModel(BaseModel):
     """
     name = models.CharField(verbose_name="项目名称", max_length=256, null=False, blank=False)
     desc = models.TextField(verbose_name="项目描述和内容")
+    testcase_root_tree_id = models.PositiveIntegerField(verbose_name="测试用例树的父id", null=True, blank=True)
     is_del = models.BooleanField(default=False, null=False, blank=False)
 
     def __str__(self):
@@ -47,7 +48,7 @@ class TreeNode(MP_Node):
     目录表
     """
     name = models.CharField(max_length=32)
-    project_id = models.PositiveIntegerField(null=True)
+    # project_id = models.PositiveIntegerField(null=True)
     create_time = models.DateTimeField(verbose_name="创建时间", auto_now_add=True)
     update_time = models.DateTimeField(verbose_name="更新时间", auto_now=True)
     node_order_by = ['name']
