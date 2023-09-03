@@ -35,7 +35,7 @@ class RequirementModel(BaseModel):
     name = models.CharField(verbose_name="需求名称", max_length=256)
     desc = models.TextField(verbose_name="需求描述和内容")
     create_user_id = models.PositiveIntegerField(verbose_name="创建人id")
-    update_user_id = models.PositiveIntegerField(verbose_name="修改人id")
+    update_user_id = models.PositiveIntegerField(verbose_name="修改人id", null=True)
     project_id = models.PositiveIntegerField(db_index=True, null=False, blank=False)
     is_del = models.BooleanField(default=False, null=False, blank=False)
 

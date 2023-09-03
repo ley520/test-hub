@@ -10,4 +10,4 @@ api = NinjaAPI()
 
 api.add_router("user", user_router)
 api.add_router("testcase", testcase_router)
-api.add_router("common", common_router)
+api.add_router("common", common_router, tags=['Common'])
