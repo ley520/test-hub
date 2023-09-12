@@ -2,6 +2,7 @@
 # data：2023/8/16-21:06
 from .base import *
 
+DEBUG = True
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",

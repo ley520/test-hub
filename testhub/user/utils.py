@@ -3,14 +3,11 @@
 import jwt
 import datetime
 
-from django.http import HttpRequest
+from django.contrib.auth.models import User
 from jwt import exceptions
 from ninja.security import HttpBearer
 
 from config.settings.jwt import JWT_SECRET, JWT_EXPIRATION_DELTA_SECONDS, JWT_AUTH_HEADER, JWT_AUTH_HEADER_PREFIX
-from django.conf import settings
-
-from config import logger
 
 
 def create_token(payload: dict):
@@ -37,8 +34,11 @@ def parse_payload(token):
     result = {'status': False, 'data': None, 'error': None}
     try:
         verified_payload = jwt.decode(token, JWT_SECRET, algorithms="HS256")
-        result['status'] = True
-        result['data'] = verified_payload
+        if verified_payload:
+            result['status'] = True
+            user_instance = User.objects.get(id=verified_payload['id'])
+            result['data'] = user_instance
+
     except exceptions.ExpiredSignatureError:
         result['error'] = 'token已失效'
     except jwt.DecodeError:
@@ -49,6 +49,18 @@ def parse_payload(token):
 
 
 class MyHttpBearer(HttpBearer):
+    '''
+    自定义用户认证
+    获取用户请求头中的header进行验证，验证通过后用户实例赋值给request.user
+    Example:
+        1、token存放路径和格式
+            headers = {
+                Authorization: bearer token...
+            }
+        2、解析后存储
+        user = User.object.get(id=id)
+        request.user = user
+    '''
     openapi_scheme: str = JWT_AUTH_HEADER_PREFIX
     header: str = JWT_AUTH_HEADER
 
