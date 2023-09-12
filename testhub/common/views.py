@@ -3,8 +3,6 @@ from typing import List
 from ninja import Router, Query
 from ninja.pagination import paginate
 
-from guardian.decorators import permission_required_or_403
-
 from testhub.common.schemas import (
     ProjectCreateSchema,
     ProjectSchemaOut,
@@ -12,8 +10,9 @@ from testhub.common.schemas import (
     RequirementSchemaIn,
     RequirementSchemaOut,
     RequirementFilterSchema,
-    RequirementProjectSchemaOut)
-from .services import (
+    TreeNodeSchemaOut,
+)
+from testhub.common.services import (
     get_all_node,
     create_new_project,
     get_all_project,
@@ -24,21 +23,21 @@ from .services import (
     update_requirement_info,
     delete_requirement,
     query_requirement_detail,
-    query_requirement_list)
+    query_requirement_list
+)
 
-from ..utils.BasePagination import CustomPagination
-from ..utils.BaseResponse import BaseRespSchema
-from ..utils.BaseStatusCode import CommonStatusCode
+from testhub.utils.BasePagination import CustomPagination
+from testhub.utils.BaseResponse import BaseRespSchema
+from testhub.utils.BaseStatusCode import CommonStatusCode
 
 # Create your views here.
 router = Router()
 
 
-@router.get("/tree/{node_id}", description="获取某个节点下所有的节点")
+@router.get("/tree/{node_id}", description="获取某个节点下所有的节点", response=List[TreeNodeSchemaOut])
 def get_testcase_tree_node(request, node_id: int):
     node = get_all_node(node_id)
-    return {}
-
+    return node
 
 
 @router.post("/tree/add/{node_id}", description="在某个节点下添加子节点")
@@ -126,7 +125,7 @@ def get_requirement_detial(request, requirement_id: int):
         return BaseRespSchema.build_success_resp(data=requirement)
 
 
-@router.get('/requirement/', description='查询需求列表', response=List[RequirementProjectSchemaOut])
+@router.get('/requirement/', description='查询需求列表', response=List[RequirementSchemaOut])
 @paginate(CustomPagination)
 def get_requirement_list(request, filters: RequirementFilterSchema = Query(...)):
     requirement_combined_project_data = query_requirement_list(filters=filters)

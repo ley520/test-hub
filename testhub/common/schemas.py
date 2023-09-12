@@ -2,11 +2,11 @@
 # @Project: test-hub
 # @Author: zero
 # @Create time: 2023/8/27 11:17
-from datetime import datetime
-from typing import Optional
 
+
+from typing import Optional
 from ninja import Schema, ModelSchema, FilterSchema, Field
-from testhub.common.models import ProjectModel, RequirementModel
+from testhub.common.models import ProjectModel, RequirementModel, TreeNode
 
 
 class ProjectCreateSchema(Schema):
@@ -27,11 +27,13 @@ class ProjectFilterSchema(FilterSchema):
 
 class RequirementSchemaIn(Schema):
     name: str
-    desc: str
+    desc: Optional[str]
     project_id: int
 
 
 class RequirementSchemaOut(ModelSchema):
+    project: ProjectSchemaOut
+
     class Config:
         model = RequirementModel
         model_exclude = ['is_del']
@@ -43,5 +45,7 @@ class RequirementFilterSchema(FilterSchema):
     project_name: Optional[str]
 
 
-class RequirementProjectSchemaOut(RequirementSchemaOut):
-    project: ProjectSchemaOut
+class TreeNodeSchemaOut(ModelSchema):
+    class Config:
+        model = TreeNode
+        model_fields = '__all__'

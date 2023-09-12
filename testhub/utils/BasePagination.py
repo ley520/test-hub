@@ -24,8 +24,10 @@ class CustomPagination(PaginationBase):
 
     def paginate_queryset(self, queryset, pagination: Input, **params):
         page = pagination.page
+        start = (page - 1) * 10
+        end = page * 10
         return {
-            'data': queryset[page: page + 10],
+            'data': queryset[start: end],
             'page': page,
             'total': queryset.count(),
         }

@@ -1,23 +1,30 @@
 # coding=utf-8
 # data：2023/8/27-12:49
-from typing import List, Optional, Dict
+from typing import List, Optional
 from django.contrib.auth.models import Group, User
-from django.db.models import Q
 from django.http import HttpResponseForbidden
 from guardian.shortcuts import assign_perm
-from .models import TreeNode, ProjectModel, RequirementModel
+from testhub.common.models import (
+    TreeNode,
+    ProjectModel,
+    RequirementModel
+)
 from config import logger
-from .schemas import ProjectCreateSchema, ProjectFilterSchema, RequirementSchemaIn, RequirementFilterSchema, \
-    RequirementSchemaOut, ProjectSchemaOut, \
-    RequirementProjectSchemaOut
+from testhub.common.schemas import (
+    ProjectCreateSchema,
+    ProjectFilterSchema,
+    RequirementSchemaIn,
+    RequirementFilterSchema, RequirementSchemaOut,
+)
 
 
 # 查询
+# todo 解决树形结构问题
 def get_all_node(node_id):
     tree = TreeNode.objects.filter(id=node_id)
     if tree:
-        return tree[0].dump_bulk()
-    return []
+        return tree.first().dump_bulk()
+    return None
 
 
 def create_root_tree_node(node_name) -> TreeNode:
@@ -25,9 +32,9 @@ def create_root_tree_node(node_name) -> TreeNode:
 
 
 def create_child_tree_node(parent_node_id, name):
-    parent_node = TreeNode.objects.filter(id=parent_node_id)
+    parent_node = TreeNode.objects.filter(id=parent_node_id).first()
     if parent_node:
-        child_node = parent_node[0].add_child(name=name)
+        child_node = parent_node.add_child(name=name)
         return child_node
     logger.info(f"父节点ID：{parent_node_id} 不存在")
     return False
@@ -58,61 +65,52 @@ def get_all_project(filters: ProjectFilterSchema) -> List[ProjectModel]:
 
 
 def get_project_detail(project_id: int) -> Optional[ProjectModel]:
-    project = ProjectModel.objects.filter(id=project_id, is_del=False)
+    project = ProjectModel.objects.filter(id=project_id, is_del=False).first()
     if not project:
         return None
-    return project[0]
+    return project
 
 
 def delete_project(project_id: int) -> bool:
-    project = ProjectModel.objects.filter(id=project_id, is_del=False)
+    project = ProjectModel.objects.filter(id=project_id, is_del=False).first()
 
     if not project:
         logger.info(f"项目ID：{project_id} 不存在")
         return False
 
-    project[0].is_del = True
+    project.is_del = True
     project.save()
     return True
 
 
 def update_project_info(project_id: int, project_info: ProjectCreateSchema) -> Optional[ProjectModel]:
     project_info = project_info.dict()
-    project = ProjectModel.objects.filter(id=project_id, is_del=False)
+    project = get_project_detail(project_id=project_id)
+
     if not project:
         logger.info(f"项目ID：{project_id} 不存在")
         return None
 
     for key, value in project_info.items():
-        setattr(project[0], key, value)
+        setattr(project, key, value)
     project.save()
     return project
 
 
 def query_requirement_detail(requirement_id: int) -> Optional[RequirementModel]:
-    requirement = RequirementModel.objects.filter(id=requirement_id, is_del=False)
+    requirement = RequirementModel.objects.select_related().filter(project__is_del=False, is_del=False, id=requirement_id).first()
     if not requirement:
         logger.info(f'需求ID {requirement_id} 不存在')
         return None
     return requirement
 
 
-def query_requirement_list(filters: RequirementFilterSchema) -> List[RequirementProjectSchemaOut]:
+def query_requirement_list(filters: RequirementFilterSchema) -> List[RequirementSchemaOut]:
     project_name = filters.project_name
-    requirements = RequirementModel.objects.all()
+    requirements = RequirementModel.objects.select_related().filter(is_del=False, project__is_del=False)
     if project_name:
-        project_ids = ProjectModel.objects.filter(name__icontains=project_name).values_list('id', flat=True)
-        requirements = requirements.filter(project_id__in=project_ids, is_del=False)
-
-    combined_result = []
-    for requirment in requirements:
-        project = ProjectModel.objects.get(id=requirment.project_id, is_del=False)
-        requirment_info = RequirementSchemaOut.from_orm(requirment).dict()
-        requirment_info.pop('project_id', None)
-        requirment_info['project'] = ProjectSchemaOut.from_orm(project).dict()
-        combined_result.append(requirment_info)
-    # todo 需要返回queryset，否则会出现分页异常
-    return combined_result
+        requirements = RequirementModel.objects.select_related().filter(project__name__icontains=project_name, project__is_del=False, is_del=False)
+    return requirements
 
 
 def create_requirement(requirement_info: RequirementSchemaIn, user_id: int) -> Optional[RequirementModel]:
@@ -130,8 +128,7 @@ def create_requirement(requirement_info: RequirementSchemaIn, user_id: int) -> O
     return requrement
 
 
-def update_requirement_info(requirement_info: RequirementSchemaIn, user_id: int, requirement_id: int) -> Optional[
-    RequirementModel]:
+def update_requirement_info(requirement_info: RequirementSchemaIn, user_id: int, requirement_id: int) -> Optional[RequirementModel]:
     requirement_payload = requirement_info.dict()
 
     project = get_project_detail(project_id=requirement_payload['project_id'])
@@ -142,6 +139,8 @@ def update_requirement_info(requirement_info: RequirementSchemaIn, user_id: int,
     requirement = query_requirement_detail(requirement_id=requirement_id)
 
     for key, value in requirement_payload.items():
+        if key == 'project_id' and value == requirement.project.id:
+            continue
         setattr(requirement, key, value)
     requirement.update_user_id = user_id
     requirement.save()
@@ -151,11 +150,10 @@ def update_requirement_info(requirement_info: RequirementSchemaIn, user_id: int,
 
 def delete_requirement(requirement_id: int) -> bool:
     requirement = query_requirement_detail(requirement_id=requirement_id)
-
     if not requirement:
         logger.info(f"项目ID：{requirement_id} 不存在")
         return False
 
-    requirement[0].is_del = True
+    requirement.is_del = True
     requirement.save()
     return True
