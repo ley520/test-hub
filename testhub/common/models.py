@@ -19,6 +19,7 @@ class ProjectModel(BaseModel):
     name = models.CharField(verbose_name="项目名称", max_length=256, null=False, blank=False)
     desc = models.TextField(verbose_name="项目描述和内容")
     testcase_root_tree_id = models.PositiveIntegerField(verbose_name="测试用例树的父id", null=True, blank=True)
+    create_user_id = models.PositiveIntegerField(verbose_name="创建人", default=0)
     is_del = models.BooleanField(default=False, null=False, blank=False)
 
     def __str__(self):
@@ -26,6 +27,10 @@ class ProjectModel(BaseModel):
 
     class Meta:
         db_table = "project"
+        permissions = (
+            ('project_manager', 'manage project'),
+            ('project_member', 'project team members'),
+        )
 
 
 class RequirementModel(BaseModel):

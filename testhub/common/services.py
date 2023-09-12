@@ -1,12 +1,14 @@
 # coding=utf-8
 # data：2023/8/27-12:49
 from typing import List, Optional, Dict
-
+from django.contrib.auth.models import Group, User
 from django.db.models import Q
-
+from django.http import HttpResponseForbidden
+from guardian.shortcuts import assign_perm
 from .models import TreeNode, ProjectModel, RequirementModel
 from config import logger
-from .schemas import ProjectCreateSchema, ProjectFilterSchema, RequirementSchemaIn, RequirementFilterSchema, RequirementSchemaOut, ProjectSchemaOut, \
+from .schemas import ProjectCreateSchema, ProjectFilterSchema, RequirementSchemaIn, RequirementFilterSchema, \
+    RequirementSchemaOut, ProjectSchemaOut, \
     RequirementProjectSchemaOut
 
 
@@ -31,12 +33,22 @@ def create_child_tree_node(parent_node_id, name):
     return False
 
 
-def create_new_project(project_info: ProjectCreateSchema) -> ProjectModel:
-    root_node = create_root_tree_node(project_info.name)
-    project = project_info.dict()
-    project.update({"testcase_root_tree_id": root_node.id})
-    project_instance = ProjectModel.objects.create(**project)
-    return project_instance
+def create_new_project(request, project_info: ProjectCreateSchema) -> ProjectModel:
+    user: User = User.objects.filter(id=request.user["id"])
+    if user:
+        root_node = create_root_tree_node(project_info.name)
+        project = project_info.dict()
+        project.update({"testcase_root_tree_id": root_node.id})
+        project_instance = ProjectModel.objects.create(**project)
+        # 创建项目的权限分组：管理员组和用户组，并赋予权限
+        group_manager = Group.objects.create(name=f"{project_info.name}_manager")
+        group_member = Group.objects.create(name=f"{project_info.name}_member")
+        assign_perm("common.project_manager", group_manager)
+        assign_perm("common.project_member", group_member)
+        user.groups.add(group_manager)
+        return project_instance
+    else:
+        raise HttpResponseForbidden(content="请重新登录")
 
 
 def get_all_project(filters: ProjectFilterSchema) -> List[ProjectModel]:
@@ -118,7 +130,8 @@ def create_requirement(requirement_info: RequirementSchemaIn, user_id: int) -> O
     return requrement
 
 
-def update_requirement_info(requirement_info: RequirementSchemaIn, user_id: int, requirement_id: int) -> Optional[RequirementModel]:
+def update_requirement_info(requirement_info: RequirementSchemaIn, user_id: int, requirement_id: int) -> Optional[
+    RequirementModel]:
     requirement_payload = requirement_info.dict()
 
     project = get_project_detail(project_id=requirement_payload['project_id'])

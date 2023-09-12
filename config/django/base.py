@@ -21,12 +21,22 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "django-insecure-wq^(p^f@0p2$=-^6z9i%^$(-wjdh*8c9*6&ignkpnig$w44e0d"
 
+# todo：目前加密算法的密钥不能包含百分号，后续修改一下加密算法
+USER_PASSWORD_SECRET_KEY = "d3er34fr9e807f012390f9chdjsio293r70909"
+
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = []
 
 # Application definition
+PASSWORD_HASHERS = [
+    "django.contrib.auth.hashers.PBKDF2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
+    "django.contrib.auth.hashers.Argon2PasswordHasher",
+    "django.contrib.auth.hashers.BCryptSHA256PasswordHasher",
+    "django.contrib.auth.hashers.ScryptPasswordHasher",
+]
 
 LOCAL_APPS = [
     "testhub.api.apps.ApiConfig",
@@ -37,6 +47,7 @@ LOCAL_APPS = [
 
 THIRD_PARTY_APPS = [
     "ninja",
+    "guardian",
 ]
 INSTALLED_APPS = [
     *THIRD_PARTY_APPS,
@@ -58,6 +69,11 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',  # this is default
+    'guardian.backends.ObjectPermissionBackend',
+)
 
 ROOT_URLCONF = "config.urls"
 
