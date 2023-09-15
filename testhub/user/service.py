@@ -13,10 +13,9 @@ from testhub.user.utils import create_token
 
 
 def user_login(user: LoginSchema):
-    user_instance_list = User.objects.filter(name=user.username)
+    user_instance_list = User.objects.filter(username=user.username)
     if user_instance_list and user_instance_list[0].check_password(user.password):
-        return create_token(model_to_dict(user_instance_list[0], exclude=["password"]))
-
+        return create_token(model_to_dict(user_instance_list[0], fields=["id", "username"]))
     else:
         raise HttpResponseForbidden
 

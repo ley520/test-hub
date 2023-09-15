@@ -25,13 +25,14 @@ from testhub.common.services import (
     query_requirement_detail,
     query_requirement_list
 )
+from testhub.user.utils import MyHttpBearer
 
 from testhub.utils.BasePagination import CustomPagination
 from testhub.utils.BaseResponse import BaseRespSchema
 from testhub.utils.BaseStatusCode import CommonStatusCode
 
 # Create your views here.
-router = Router()
+router = Router(auth=MyHttpBearer)
 
 
 @router.get("/tree/{node_id}", description="获取某个节点下所有的节点", response=List[TreeNodeSchemaOut])
