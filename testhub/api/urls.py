@@ -1,13 +1,17 @@
 # coding=utf-8
 # data：2023/8/18-13:18
 
-from ninja import NinjaAPI
-from testhub.user.views import router as user_router
-from testhub.testcase.views import router as testcase_router
-from testhub.common.views import router as common_router
+# from ninja import NinjaAPI
+# from testhub.user.views import router as user_router
+# from testhub.testcase.views import router as testcase_router
 
-api = NinjaAPI()
+from django.urls import path, include
 
-api.add_router("user", user_router)
-api.add_router("testcase", testcase_router)
-api.add_router("common", common_router, tags=['Common'])
+# api = NinjaAPI()
+#
+# api.add_router("user", user_router)
+# api.add_router("testcase", testcase_router)
+
+urlpatterns = [
+    path("common/", include("testhub.common.urls")),
+]

@@ -1,133 +1,126 @@
-from typing import List
+from rest_framework import generics
+from rest_framework.response import Response
 
-from ninja import Router, Query
-from ninja.pagination import paginate
-
-from guardian.decorators import permission_required_or_403
-
-from testhub.common.schemas import (
-    ProjectCreateSchema,
-    ProjectSchemaOut,
-    ProjectFilterSchema,
-    RequirementSchemaIn,
-    RequirementSchemaOut,
-    RequirementFilterSchema,
-    RequirementProjectSchemaOut)
-from .services import (
-    get_all_node,
-    create_new_project,
-    get_all_project,
-    delete_project,
-    update_project_info,
-    get_project_detail,
-    create_requirement,
-    update_requirement_info,
-    delete_requirement,
-    query_requirement_detail,
-    query_requirement_list)
-
-from ..utils.BasePagination import CustomPagination
-from ..utils.BaseResponse import BaseRespSchema
-from ..utils.BaseStatusCode import CommonStatusCode
-
-# Create your views here.
-router = Router()
+from testhub.common.models import Directory, Project, Requirement
+from testhub.common.serializers import DirectorySerializer, ProjectSerializer, RequirementSerializer
+from testhub.common.services import get_tree_root, get_node_by_id
 
 
-@router.get("/tree/{node_id}", description="获取某个节点下所有的节点")
-def get_testcase_tree_node(request, node_id: int):
-    node = get_all_node(node_id)
-    return {}
+class DirectoryAPI(generics.GenericAPIView):
+    queryset = Directory.objects.all()
+    serializer_class = DirectorySerializer
+
+    def get(self, request):
+        queryset = get_tree_root(self.queryset)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors)
 
 
+class DirectoryDetailAPI(generics.GenericAPIView):
+    queryset = Directory.objects.all()
+    serializer_class = DirectorySerializer
 
-@router.post("/tree/add/{node_id}", description="在某个节点下添加子节点")
-def add_tree_node(request, node_id: int):
-    return {}
+    def get(self, request, pk):
+        queryset = get_node_by_id(self.get_queryset(), pk)
+        serializer = self.get_serializer(queryset)
+        return Response(serializer.data)
 
+    def put(self, request, pk):
+        queryset = self.get_queryset().filter(id=pk)
+        serializer = self.get_serializer(queryset, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors)
 
-@router.post("/project", description="添加项目", response=BaseRespSchema[ProjectSchemaOut])
-def add_project(request, project_info: ProjectCreateSchema):
-    project = create_new_project(request, project_info)
-    return BaseRespSchema.build_success_resp(data=project)
-
-
-@router.delete("/project/{project_id}", description="删除项目", response=BaseRespSchema)
-def del_project(request, project_id: int):
-    is_deleted = delete_project(project_id=project_id)
-    if is_deleted:
-        return BaseRespSchema.build_success_resp()
-    else:
-        return BaseRespSchema.build_fall_resp(code=CommonStatusCode.PROJECT_NOT_EXIST.code,
-                                              message=CommonStatusCode.PROJECT_NOT_EXIST.msg)
-
-
-@router.put("/project/{project_id}", description="更新项目", response=BaseRespSchema[ProjectSchemaOut])
-def update_project(request, project_id: int, project_info: ProjectCreateSchema):
-    project = update_project_info(project_id=project_id, project_info=project_info)
-    if not project:
-        return BaseRespSchema.build_fall_resp(code=CommonStatusCode.PROJECT_NOT_EXIST.code,
-                                              message=CommonStatusCode.PROJECT_NOT_EXIST.msg)
-    else:
-        return BaseRespSchema.build_success_resp(data=project)
+    def delete(self, request, pk):
+        queryset = self.get_queryset().filter(id=pk)
+        queryset.delete()
+        return Response(status=204)
 
 
-@router.get("/project", description="查询项目列表", response=List[ProjectSchemaOut])
-@paginate(CustomPagination)
-def query_project_list(request, filters: ProjectFilterSchema = Query(...)):
-    projects = get_all_project(filters=filters)
-    return projects
+class ProjectAPI(generics.GenericAPIView):
+    queryset = Project.objects.all()
+    serializer_class = ProjectSerializer
+
+    def get(self, request):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors)
 
 
-@router.get("/project/{project_id}", description="查询项目详情", response=BaseRespSchema[ProjectSchemaOut])
-def query_project_detail(request, project_id: int):
-    project = get_project_detail(project_id=project_id)
-    return BaseRespSchema.build_success_resp(data=project)
+class ProjectDetailAPI(generics.GenericAPIView):
+    queryset = Project.objects.all()
+    serializer_class = ProjectSerializer
+
+    def get(self, request, pk):
+        queryset = self.get_queryset().filter(id=pk).first()
+        serializer = self.get_serializer(queryset)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        queryset = self.get_queryset().filter(id=pk).first()
+        serializer = self.get_serializer(queryset, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors)
+
+    def delete(self, request, pk):
+        queryset = self.get_queryset().filter(id=pk).first()
+        queryset.delete()
+        return Response(status=204)
 
 
-@router.post('/requirements/add', description='添加需求', response=BaseRespSchema[RequirementSchemaOut])
-def add_requirement(request, requirement_info: RequirementSchemaIn):
-    user_id = request.user.id
-    requirement = create_requirement(requirement_info=requirement_info, user_id=user_id)
-    if not requirement:
-        return BaseRespSchema.build_fall_resp(CommonStatusCode.PROJECT_NOT_EXIST.code,
-                                              message=CommonStatusCode.PROJECT_NOT_EXIST.msg)
-    return BaseRespSchema.build_success_resp(data=requirement)
+class RequirementAPI(generics.GenericAPIView):
+    queryset = Requirement.objects.all()
+    serializer_class = RequirementSerializer
+
+    def get(self, request):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(project_id=request.data["project_id"])
+            return Response(serializer.data)
+        return Response(serializer.errors)
 
 
-@router.put('/requirement/{requirement_id}', description='更新需求信息', response=BaseRespSchema[RequirementSchemaOut])
-def update_requirement(request, requirement_info: RequirementSchemaIn, requirement_id: int):
-    user_id = request.user.id
-    requirement = update_requirement_info(requirement_info=requirement_info, user_id=user_id,
-                                          requirement_id=requirement_id)
-    if not requirement:
-        return BaseRespSchema.build_fall_resp(code=CommonStatusCode.REQUIREMENT_NOT_EXIST.code,
-                                              message=CommonStatusCode.REQUIREMENT_NOT_EXIST.msg)
-    return BaseRespSchema.build_success_resp(data=requirement)
+class RequirementDetailAPI(generics.GenericAPIView):
+    queryset = Requirement.objects.all()
+    serializer_class = RequirementSerializer
 
+    def get(self, request, pk):
+        queryset = self.get_queryset().filter(id=pk).first()
+        serializer = self.get_serializer(queryset)
+        return Response(serializer.data)
 
-@router.delete('/requirement/{requirement_id}', description='删除需求', response=BaseRespSchema)
-def del_requirement(request, requirement_id: int):
-    is_delete = delete_requirement(requirement_id=requirement_id)
-    if not is_delete:
-        return BaseRespSchema.build_fall_resp(CommonStatusCode.REQUIREMENT_NOT_EXIST.code,
-                                              message=CommonStatusCode.REQUIREMENT_NOT_EXIST.msg)
-    else:
-        return BaseRespSchema.build_success_resp()
+    def put(self, request, pk):
+        queryset = self.get_queryset().filter(id=pk).first()
+        serializer = self.get_serializer(queryset, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors)
 
-
-@router.get('/requirement/{requirement_id}', description='查询需求详情', response=BaseRespSchema[RequirementSchemaOut])
-def get_requirement_detial(request, requirement_id: int):
-    requirement = query_requirement_detail(requirement_id=requirement_id)
-    if not requirement:
-        return BaseRespSchema.build_fall_resp(CommonStatusCode.REQUIREMENT_NOT_EXIST.code,
-                                              message=CommonStatusCode.REQUIREMENT_NOT_EXIST.msg)
-    else:
-        return BaseRespSchema.build_success_resp(data=requirement)
-
-
-@router.get('/requirement/', description='查询需求列表', response=List[RequirementProjectSchemaOut])
-@paginate(CustomPagination)
-def get_requirement_list(request, filters: RequirementFilterSchema = Query(...)):
-    requirement_combined_project_data = query_requirement_list(filters=filters)
-    return requirement_combined_project_data
+    def delete(self, request, pk):
+        queryset = self.get_queryset().filter(id=pk).first()
+        queryset.delete()
+        return Response(status=204)

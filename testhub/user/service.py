@@ -1,13 +1,13 @@
 # coding=utf-8
 # data：2023/8/29-20:37
 
-from django.contrib.auth.models import User, Group
-from django.contrib.auth.hashers import make_password, check_password
+from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
 from django.conf import settings
 from django.forms import model_to_dict
 from django.http import HttpResponseForbidden
 
-from testhub.common.models import ProjectModel
+
 from testhub.user.schemas import CreateUserSchema, LoginSchema
 from testhub.user.utils import create_token
 
@@ -34,5 +34,3 @@ def add_user(request, user_info: CreateUserSchema):
         return user_instance
     else:
         raise HttpResponseForbidden
-
-# Group.objects.create()

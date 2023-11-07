@@ -16,6 +16,7 @@ pyjwt = "^2.8.0"
 mysqlclient = "^2.2.0"
 loguru = "^0.7.0"
 django-guardian = "^2.4.0"
+djangorestframework = "^3.14.0"
 
 
 [build-system]
