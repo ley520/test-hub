@@ -1,6 +1,6 @@
 # coding=utf-8
 # data：2023/8/16-21:06
-from .base import *
+from config.django.base import *
 
 DEBUG = True
 DATABASES = {
@@ -13,4 +13,3 @@ DATABASES = {
         "PORT": "3306",
     }
 }
-

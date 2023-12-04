@@ -1,10 +1,10 @@
 from ninja import Router
 from django.forms import model_to_dict
 from .schemas import LoginSchema, CreateUserSchema
-from .utils import parse_payload, MyHttpBearer
+from .utils import MyHttpBearer
 from testhub.user import service as user_service
 from testhub.utils.BaseResponse import BaseRespSchema
-from config import logger
+from ..utils import logger
 from testhub.utils.BaseStatusCode import CommonStatusCode
 
 router = Router(auth=MyHttpBearer)

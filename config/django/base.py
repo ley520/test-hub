@@ -61,6 +61,10 @@ INSTALLED_APPS = [
     *LOCAL_APPS,
 ]
 
+CUSTOM_MIDDLEWARE = [
+    "testhub.core.custom_mw.LoggingMiddleware",
+]
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -71,9 +75,11 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+MIDDLEWARE += CUSTOM_MIDDLEWARE
+
 AUTHENTICATION_BACKENDS = (
-    'django.contrib.auth.backends.ModelBackend',  # this is default
-    'guardian.backends.ObjectPermissionBackend',
+    "django.contrib.auth.backends.ModelBackend",  # this is default
+    "guardian.backends.ObjectPermissionBackend",
 )
 
 ROOT_URLCONF = "config.urls"
@@ -139,3 +145,9 @@ STATIC_URL = "/static/"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# 禁用 Django 默认的日志处理器
+LOGGING = {"version": 1, "disable_existing_loggers": True}
+
+# DRF 配置
+REST_FRAMEWORK = {"EXCEPTION_HANDLER": "testhub.core.custom_exc.custom_exception_handler"}

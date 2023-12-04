@@ -1,14 +1,15 @@
 #!/usr/bin/env python
-# @Project: test-hub
-# @Author: zero
-# @Create time: 2023/8/28 15:52
+# -*- coding: utf-8 -*-
+# Created on: 2023/12/1
+# Author: bitzero
+
 
 from enum import Enum
 
 
-class CommonStatusCode(Enum):
-    PROJECT_NOT_EXIST = (10001, '项目不存在')
-    REQUIREMENT_NOT_EXIST = (10002, '需求不存在')
+class SystemStatusCode(Enum):
+    SUCCESS = (0, "成功")
+    ERROR = (-1, "失败")
     UNKNOWN_EXCEPTION = (9999, "未知异常，请联系管理员")
 
     @property
